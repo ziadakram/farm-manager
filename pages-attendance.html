@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance | Farm Management</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Same navigation -->
+    </div>
+
+    <div class="main-content">
+        <header class="top-header">
+            <h2><i class="fas fa-clipboard-check"></i> Employee Attendance</h2>
+            <div class="user-info">
+                <button class="btn btn-success" onclick="markTodayAttendance()">
+                    <i class="fas fa-check-circle"></i> Mark Today's Attendance
+                </button>
+            </div>
+        </header>
+
+        <!-- Attendance Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label"><i class="fas fa-user-check"></i> Present Today</div>
+                <div class="stat-value" id="present-today">0</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-label"><i class="fas fa-user-times"></i> Absent Today</div>
+                <div class="stat-value" id="absent-today">0</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-label"><i class="fas fa-percentage"></i> This Month</div>
+                <div class="stat-value" id="month-attendance">0%</div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-label"><i class="fas fa-calendar-alt"></i> Date</div>
+                <div class="stat-value" id="current-date">Today</div>
+            </div>
+        </div>
+
+        <!-- Mark Attendance Form -->
+        <div class="form-container" id="attendance-form-container">
+            <h3><i class="fas fa-calendar-day"></i> Mark Attendance for <span id="attendance-date"></span></h3>
+            <form id="attendance-form">
+                <div class="form-group">
+                    <label>Select Date</label>
+                    <input type="date" id="attendance-date-input" class="form-control" onchange="loadEmployeesForDate()">
+                </div>
+                
+                <div class="attendance-list" id="employee-attendance-list">
+                    <!-- Employees will be loaded here -->
+                    <p>Loading employees...</p>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-success" onclick="saveAttendance()">
+                        <i class="fas fa-save"></i> Save Attendance
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="clearAttendance()">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Attendance Records -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-history"></i> Attendance History</h2>
+                <div class="table-controls">
+                    <input type="date" id="filter-date" class="form-control" style="width: 200px;">
+                    <button class="btn btn-primary" onclick="filterAttendance()">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <button class="btn btn-primary export-btn" data-type="attendance">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Employee</th>
+                            <th>ID</th>
+                            <th>Status</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data loaded by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Attendance Chart -->
+        <div class="chart-container">
+            <h2><i class="fas fa-chart-bar"></i> Monthly Attendance Trend</h2>
+            <canvas id="attendance-chart" height="300"></canvas>
+        </div>
+    </div>
+
+    <script src="../db.js"></script>
+    <script src="../main.js"></script>
+    <script>
+        let attendanceData = [];
+        let selectedDate = new Date().toISOString().split('T')[0];
+        
+        // Initialize attendance page
+        document.addEventListener('DOMContentLoaded', async function() {
+            document.getElementById('attendance-date-input').value = selectedDate;
+            document.getElementById('attendance-date').textContent = formatDateForDisplay(selectedDate);
+            await loadEmployeesForDate();
+            await loadAttendance();
+        });
+        
+        // Load employees for selected date
+        async function loadEmployeesForDate() {
+            selectedDate = document.getElementById('attendance-date-input').value;
+            document.getElementById('attendance-date').textContent = formatDateForDisplay(selectedDate);
+            
+            try {
+                const employees = await farmDB.getAll('employees');
+                const attendance = await farmDB.query('attendance', 'date', selectedDate);
+                
+                const container = document.getElementById('employee-attendance-list');
+                container.innerHTML = '';
+                
+                employees.forEach(employee => {
+                    if (employee.status !== 'Active') return;
+                    
+                    const existingAttendance = attendance.find(a => a.employeeId === employee.id);
+                    
+                    const div = document.createElement('div');
+                    div.className = 'attendance-item';
+                    div.innerHTML = `
+                        <div class="employee-info">
+                            <strong>${employee.firstName} ${employee.lastName}</strong>
+                            <span>${employee.position} (${employee.employeeId})</span>
+                        </div>
+                        <div class="attendance-controls">
+                            <select class="attendance-status" data-employee="${employee.id}">
+                                <option value="present" ${existingAttendance?.status === 'present' ? 'selected' : ''}>Present</option>
+                                <option value="absent" ${existingAttendance?.status === 'absent' ? 'selected' : ''}>Absent</option>
+                                <option value="halfday" ${existingAttendance?.status === 'halfday' ? 'selected' : ''}>Half Day</option>
+                                <option value="leave" ${existingAttendance?.status === 'leave' ? 'selected' : ''}>Leave</option>
+                            </select>
+                            <input type="time" class="check-in" data-employee="${employee.id}" 
+                                   value="${existingAttendance?.checkIn || '09:00'}" placeholder="HH:MM">
+                            <input type="time" class="check-out" data-employee="${employee.id}"
+                                   value="${existingAttendance?.checkOut || '18:00'}" placeholder="HH:MM">
+                            <input type="text" class="attendance-notes" data-employee="${employee.id}"
+                                   value="${existingAttendance?.notes || ''}" placeholder="Notes">
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                
+            } catch (error) {
+                console.error('Error loading employees:', error);
+            }
+        }
+        
+        // Save attendance
+        async function saveAttendance() {
+            const attendanceItems = document.querySelectorAll('.attendance-item');
+            const date = document.getElementById('attendance-date-input').value;
+            
+            try {
+                for (const item of attendanceItems) {
+                    const employeeId = item.querySelector('.attendance-status').dataset.employee;
+                    const status = item.querySelector('.attendance-status').value;
+                    const checkIn = item.querySelector('.check-in').value;
+                    const checkOut = item.querySelector('.check-out').value;
+                    const notes = item.querySelector('.attendance-notes').value;
+                    
+                    // Check if attendance already exists for this date
+                    const existing = await farmDB.query('attendance', 'date', date);
+                    const existingRecord = existing.find(a => a.employeeId === employeeId && a.date === date);
+                    
+                    const attendanceRecord = {
+                        date: date,
+                        employeeId: employeeId,
+                        status: status,
+                        checkIn: checkIn,
+                        checkOut: checkOut,
+                        notes: notes,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    if (existingRecord) {
+                        // Update existing
+                        await farmDB.update('attendance', existingRecord.id, attendanceRecord);
+                    } else {
+                        // Add new
+                        await farmDB.add('attendance', attendanceRecord);
+                    }
+                }
+                
+                showNotification('Attendance saved successfully!', 'success');
+                await loadAttendance();
+                
+            } catch (error) {
+                console.error('Error saving attendance:', error);
+                showNotification('Error saving attendance', 'error');
+            }
+        }
+        
+        // Mark today's attendance quickly
+        async function markTodayAttendance() {
+            // Set all employees to present for today
+            const employees = await farmDB.getAll('employees');
+            const today = new Date().toISOString().split('T')[0];
+            
+            try {
+                for (const employee of employees) {
+                    if (employee.status === 'Active') {
+                        const attendanceRecord = {
+                            date: today,
+                            employeeId: employee.id,
+                            status: 'present',
+                            checkIn: '09:00',
+                            checkOut: '18:00',
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        await farmDB.add('attendance', attendanceRecord);
+                    }
+                }
+                
+                showNotification('Today\'s attendance marked successfully!', 'success');
+                await loadEmployeesForDate();
+                await loadAttendance();
+                
+            } catch (error) {
+                console.error('Error marking attendance:', error);
+                showNotification('Error marking attendance', 'error');
+            }
+        }
+        
+        // Clear attendance for selected date
+        async function clearAttendance() {
+            if (confirm('Are you sure you want to clear all attendance for this date?')) {
+                const date = document.getElementById('attendance-date-input').value;
+                const attendance = await farmDB.query('attendance', 'date', date);
+                
+                try {
+                    for (const record of attendance) {
+                        await farmDB.delete('attendance', record.id);
+                    }
+                    
+                    showNotification('Attendance cleared!', 'success');
+                    await loadEmployeesForDate();
+                    await loadAttendance();
+                    
+                } catch (error) {
+                    console.error('Error clearing attendance:', error);
+                    showNotification('Error clearing attendance', 'error');
+                }
+            }
+        }
+        
+        // Filter attendance by date
+        async function filterAttendance() {
+            const filterDate = document.getElementById('filter-date').value;
+            if (!filterDate) {
+                await loadAttendance();
+                return;
+            }
+            
+            try {
+                const attendance = await farmDB.query('attendance', 'date', filterDate);
+                displayAttendance(attendance);
+                
+            } catch (error) {
+                console.error('Error filtering attendance:', error);
+            }
+        }
+        
+        // Display attendance data
+        async function displayAttendance(data) {
+            const employees = await farmDB.getAll('employees');
+            const tbody = document.querySelector('#attendance-table tbody');
+            
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            data.forEach(record => {
+                const employee = employees.find(emp => emp.id === record.employeeId);
+                const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDate(record.date)}</td>
+                    <td>${employeeName}</td>
+                    <td>${employee?.employeeId || 'N/A'}</td>
+                    <td><span class="badge ${record.status}">${record.status || 'Absent'}</span></td>
+                    <td>${record.checkIn || '--:--'}</td>
+                    <td>${record.checkOut || '--:--'}</td>
+                    <td>${record.notes || ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary edit-btn" data-id="${record.id}" data-type="attendance">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${record.id}" data-type="attendance">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Format date for display
+        function formatDateForDisplay(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        // Calculate attendance statistics
+        async function calculateAttendanceStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const attendance = await farmDB.query('attendance', 'date', today);
+            const employees = await farmDB.getAll('employees');
+            const activeEmployees = employees.filter(e => e.status === 'Active').length;
+            
+            const presentToday = attendance.filter(a => a.status === 'present').length;
+            const absentToday = activeEmployees - presentToday;
+            
+            // This month's attendance
+            const monthStart = new Date();
+            monthStart.setDate(1);
+            const monthAttendance = await farmDB.getAll('attendance');
+            const monthData = monthAttendance.filter(a => new Date(a.date) >= monthStart);
+            
+            // Calculate attendance rate
+            const totalDays = new Date().getDate();
+            const possibleAttendance = activeEmployees * totalDays;
+            const actualAttendance = monthData.filter(a => a.status === 'present').length;
+            const attendanceRate = possibleAttendance > 0 ? Math.round((actualAttendance / possibleAttendance) * 100) : 0;
+            
+            // Update UI
+            updateElementText('#present-today', presentToday);
+            updateElementText('#absent-today', absentToday);
+            updateElementText('#month-attendance', `${attendanceRate}%`);
+            updateElementText('#current-date', formatDateForDisplay(today));
+        }
+    </script>
+</body>
+</html>

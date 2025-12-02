@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed Consumption | Farm Management</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Same navigation as expenses.html -->
+    </div>
+
+    <div class="main-content">
+        <header class="top-header">
+            <h2><i class="fas fa-seedling"></i> Feed Consumption</h2>
+            <div class="user-info">
+                <button class="btn btn-success" onclick="toggleFeedForm()">
+                    <i class="fas fa-plus"></i> Add Consumption
+                </button>
+            </div>
+        </header>
+
+        <!-- Feed Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label"><i class="fas fa-weight"></i> Today's Consumption</div>
+                <div class="stat-value" id="today-feed">0 kg</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-label"><i class="fas fa-calendar-week"></i> This Week</div>
+                <div class="stat-value" id="week-feed">0 kg</div>
+            </div>
+            <div class="stat-card danger">
+                <div class="stat-label"><i class="fas fa-home"></i> Shed A</div>
+                <div class="stat-value" id="sheda-feed">0 kg</div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-label"><i class="fas fa-home"></i> Shed B</div>
+                <div class="stat-value" id="shedb-feed">0 kg</div>
+            </div>
+        </div>
+
+        <!-- Add Feed Consumption Form -->
+        <div class="form-container" id="feed-form-container" style="display: none;">
+            <h3><i class="fas fa-plus-circle"></i> Record Feed Consumption</h3>
+            <form id="feed-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Shed *</label>
+                        <select name="shed" class="form-control" required>
+                            <option value="">Select Shed</option>
+                            <option value="A">Shed A</option>
+                            <option value="B">Shed B</option>
+                            <option value="C">Shed C</option>
+                            <option value="D">Shed D</option>
+                            <option value="all">All Sheds</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Feed Type *</label>
+                        <select name="feedType" class="form-control" required>
+                            <option value="">Select Feed Type</option>
+                            <option value="starter">Starter Feed</option>
+                            <option value="grower">Grower Feed</option>
+                            <option value="layer">Layer Feed</option>
+                            <option value="broiler">Broiler Feed</option>
+                            <option value="premium">Premium Feed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Quantity (kg) *</label>
+                        <input type="number" name="quantity" class="form-control" min="0" step="0.5" placeholder="0.0" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Number of Bags</label>
+                        <input type="number" name="bags" class="form-control" min="0" placeholder="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Feed Rate (kg/bird)</label>
+                        <input type="number" name="feedRate" class="form-control" min="0" step="0.01" placeholder="0.12">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Any observations or notes"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Save Record
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleFeedForm()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Feed Consumption Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-list"></i> Feed Consumption Records</h2>
+                <div class="table-controls">
+                    <input type="text" class="form-control search-input" placeholder="Search records..." style="width: 250px;">
+                    <select class="form-control filter-select" data-filter="shed" style="width: 150px;">
+                        <option value="all">All Sheds</option>
+                        <option value="a">Shed A</option>
+                        <option value="b">Shed B</option>
+                        <option value="c">Shed C</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="feed-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Shed</th>
+                            <th>Feed Type</th>
+                            <th>Quantity (kg)</th>
+                            <th>Bags</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data loaded by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Feed Analytics -->
+        <div class="chart-container">
+            <h2><i class="fas fa-chart-line"></i> Daily Feed Consumption</h2>
+            <div id="feed-chart" style="height: 300px;">
+                <p>Feed consumption chart will appear here</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../db.js"></script>
+    <script src="../main.js"></script>
+    <script>
+        function toggleFeedForm() {
+            const form = document.getElementById('feed-form-container');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Calculate feed statistics
+        async function calculateFeedStats() {
+            try {
+                const feedData = await farmDB.getAll('feedConsumption');
+                const today = new Date().toISOString().split('T')[0];
+                
+                // Today's consumption
+                const todaysFeed = feedData
+                    .filter(f => f.date === today)
+                    .reduce((sum, f) => sum + (parseFloat(f.quantity) || 0), 0);
+                
+                // This week
+                const weekStart = new Date();
+                weekStart.setDate(weekStart.getDate() - 7);
+                const weekFeed = feedData
+                    .filter(f => new Date(f.date) >= weekStart)
+                    .reduce((sum, f) => sum + (parseFloat(f.quantity) || 0), 0);
+                
+                // Shed-wise consumption
+                const shedAFeed = feedData
+                    .filter(f => f.shed === 'A')
+                    .reduce((sum, f) => sum + (parseFloat(f.quantity) || 0), 0);
+                
+                const shedBFeed = feedData
+                    .filter(f => f.shed === 'B')
+                    .reduce((sum, f) => sum + (parseFloat(f.quantity) || 0), 0);
+                
+                // Update UI
+                updateElementText('#today-feed', `${todaysFeed.toFixed(1)} kg`);
+                updateElementText('#week-feed', `${weekFeed.toFixed(1)} kg`);
+                updateElementText('#sheda-feed', `${shedAFeed.toFixed(1)} kg`);
+                updateElementText('#shedb-feed', `${shedBFeed.toFixed(1)} kg`);
+                
+            } catch (error) {
+                console.error('Error calculating feed stats:', error);
+            }
+        }
+        
+        // Initialize feed page
+        document.addEventListener('DOMContentLoaded', async function() {
+            await calculateFeedStats();
+        });
+    </script>
+</body>
+</html>

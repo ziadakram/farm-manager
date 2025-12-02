@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Dashboard | AgroManage Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="logo">
+            <h1><i class="fas fa-tractor"></i> <span>AgroManage Pro</span></h1>
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="index.html" class="nav-item active">
+                <i class="fas fa-chart-line"></i> <span>Dashboard</span>
+            </a>
+            <a href="pages/expenses.html" class="nav-item">
+                <i class="fas fa-money-bill-wave"></i> <span>Expenses</span>
+            </a>
+            <a href="pages/feed-consumption.html" class="nav-item">
+                <i class="fas fa-seedling"></i> <span>Feed Consumption</span>
+            </a>
+            <a href="pages/feed-orders.html" class="nav-item">
+                <i class="fas fa-shopping-cart"></i> <span>Feed Orders</span>
+            </a>
+            <a href="pages/attendance.html" class="nav-item">
+                <i class="fas fa-clipboard-check"></i> <span>Attendance</span>
+            </a>
+            <a href="pages/employees.html" class="nav-item">
+                <i class="fas fa-users"></i> <span>Employees</span>
+            </a>
+            <a href="pages/egg-records.html" class="nav-item">
+                <i class="fas fa-egg"></i> <span>Egg Records</span>
+            </a>
+            <a href="pages/medicine.html" class="nav-item">
+                <i class="fas fa-pills"></i> <span>Medicine</span>
+            </a>
+            <a href="pages/mortality.html" class="nav-item">
+                <i class="fas fa-skull-crossbones"></i> <span>Mortality</span>
+            </a>
+            <a href="pages/tasks.html" class="nav-item">
+                <i class="fas fa-tasks"></i> <span>Daily Tasks</span>
+            </a>
+            <a href="pages/reports.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i> <span>Reports</span>
+            </a>
+            <a href="pages/settings.html" class="nav-item">
+                <i class="fas fa-cog"></i> <span>Settings</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <h2><i class="fas fa-chart-line"></i> Farm Dashboard</h2>
+            <div class="user-info">
+                <div class="user-avatar">AM</div>
+                <span>Farm Manager</span>
+                <button class="btn btn-secondary"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label"><i class="fas fa-money-bill-wave"></i> Today's Expenses</div>
+                <div class="stat-value">₹2,450</div>
+                <div class="stat-trend">↑ 12% from yesterday</div>
+            </div>
+            
+            <div class="stat-card warning">
+                <div class="stat-label"><i class="fas fa-egg"></i> Eggs Collected</div>
+                <div class="stat-value">2,850</div>
+                <div class="stat-trend">↓ 5% from yesterday</div>
+            </div>
+            
+            <div class="stat-card danger">
+                <div class="stat-label"><i class="fas fa-skull-crossbones"></i> Mortality Today</div>
+                <div class="stat-value">8</div>
+                <div class="stat-trend">↓ 20% from yesterday</div>
+            </div>
+            
+            <div class="stat-card info">
+                <div class="stat-label"><i class="fas fa-users"></i> Staff Present</div>
+                <div class="stat-value">14/16</div>
+                <div class="stat-trend">87.5% attendance</div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Main Chart -->
+            <div class="chart-container">
+                <h2><i class="fas fa-chart-line"></i> Weekly Performance</h2>
+                <div id="mainChart" style="height: 300px;"></div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="chart-container">
+                <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                <div class="quick-actions">
+                    <button class="btn btn-success" style="width: 100%; margin-bottom: 10px;">
+                        <i class="fas fa-plus"></i> Add Expense
+                    </button>
+                    <button class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">
+                        <i class="fas fa-egg"></i> Record Eggs
+                    </button>
+                    <button class="btn btn-warning" style="width: 100%; margin-bottom: 10px;">
+                        <i class="fas fa-clipboard-check"></i> Mark Attendance
+                    </button>
+                    <button class="btn btn-danger" style="width: 100%;">
+                        <i class="fas fa-skull-crossbones"></i> Report Mortality
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="table-container">
+            <h2><i class="fas fa-history"></i> Recent Activities</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Activity</th>
+                        <th>Details</th>
+                        <th>User</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>10:30 AM</td>
+                        <td>Egg Collection</td>
+                        <td>2,850 eggs collected</td>
+                        <td>Rajesh Kumar</td>
+                    </tr>
+                    <tr>
+                        <td>09:15 AM</td>
+                        <td>Feed Distribution</td>
+                        <td>500kg feed distributed</td>
+                        <td>Sanjay Patel</td>
+                    </tr>
+                    <tr>
+                        <td>08:45 AM</td>
+                        <td>Medicine Administered</td>
+                        <td>Vitamin supplement to all birds</td>
+                        <td>Dr. Verma</td>
+                    </tr>
+                    <tr>
+                        <td>Yesterday</td>
+                        <td>Feed Order</td>
+                        <td>5 tons feed ordered from AgroFeed Co.</td>
+                        <td>Manager</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Alerts & Notifications -->
+        <div class="table-container">
+            <h2><i class="fas fa-bell"></i> Alerts & Notifications</h2>
+            <div class="alerts">
+                <div class="alert warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Feed inventory low (only 2 days stock remaining)</span>
+                </div>
+                <div class="alert danger">
+                    <i class="fas fa-skull-crossbones"></i>
+                    <span>High mortality rate detected in Shed B</span>
+                </div>
+                <div class="alert info">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Vaccination due tomorrow for all birds</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Initialize Google Charts
+        google.charts.load('current', {'packages':['line']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Day');
+            data.addColumn('number', 'Eggs');
+            data.addColumn('number', 'Feed Used (kg)');
+            data.addColumn('number', 'Expenses (₹)');
+
+            data.addRows([
+                ['Mon', 2850, 520, 2450],
+                ['Tue', 2920, 510, 2380],
+                ['Wed', 2880, 530, 2510],
+                ['Thu', 2950, 525, 2420],
+                ['Fri', 2900, 515, 2390],
+                ['Sat', 2870, 528, 2470],
+                ['Sun', 2840, 522, 2400]
+            ]);
+
+            var options = {
+                chart: {
+                    title: 'Weekly Farm Performance',
+                    subtitle: 'Eggs, Feed Usage, and Expenses'
+                },
+                height: 300,
+                colors: ['#2e7d32', '#ff9800', '#f44336']
+            };
+
+            var chart = new google.charts.Line(document.getElementById('mainChart'));
+            chart.draw(data, google.charts.Line.convertOptions(options));
+        }
+    </script>
+</body>
+</html>
